@@ -2,7 +2,7 @@ import { Injectable,BadRequestException, UnauthorizedException } from '@nestjs/c
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/auth.entity';
+import { Client } from './entities/auth.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { LoginAuthDto } from './dto/login-dto';
@@ -11,18 +11,18 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectRepository(User)
-  private readonly userRepository: Repository<User>,
-  private readonly jwtService: JwtService
+  constructor(@InjectRepository(Client)
+  private readonly clientRepository: Repository<Client>,
+  private readonly jwtService: JwtService,
  )
   {}
   async create(createAuthDto: CreateAuthDto) {
     try{
-      const User = this.userRepository.create(createAuthDto);
-      User.password = await bcrypt.hash(User.password, 10);
-      await this.userRepository.save(User);
-      const {fullName, email} = User;
-      return {User: {fullName, email}};
+      const client = this.clientRepository.create(createAuthDto);
+      client.password = await bcrypt.hash(client.password, 10);
+      await this.clientRepository.save(client);
+      const {fullName, email} = client;
+      return {client: {fullName, email}};
     }
     catch(err){
       console.log(err);
@@ -31,48 +31,63 @@ export class AuthService {
   }
 
   async findAll() {
-    const users = await this.userRepository.find({});
-    return users;
+    const clients = await this.clientRepository.find({});
+    return clients;
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOneBy({id:id})
-    return user; 
+    const client = await this.clientRepository.findOneBy({id:id})
+    return client; 
   }
 
   async update(id: string, updateAuthDto: UpdateAuthDto) {
-    const user = await this.userRepository.preload({id:id, ...updateAuthDto});
-    if(!user){
-      throw new NotFoundException('Cliente id no ha sido encontrado')
+    const client = await this.clientRepository.save({id:id, ...updateAuthDto});
+    if(!client){
+      throw new NotFoundException('El cliente no ha sido encontrado')
     }
-    return user;
+    return client;
   }
 
   async remove(id: string) {
-    const user = await this.userRepository.delete({id:id});
-    return user;
+    const client = await this.clientRepository.delete({id:id});
+    return client;
   }
   async login(loginAuthDto: LoginAuthDto){
     try{
       const {email, password} = loginAuthDto;
-    const user = await this.userRepository.findOneBy({email});
-    if(!user){
+    const client = await this.clientRepository.findOneBy({email});
+    if(!client){
       throw new BadRequestException('Invalid credentials')
      }
      //pregunta si los passwords coinciden
-     const isValid = bcrypt.compareSync(password, user.password);
+     const isValid = bcrypt.compareSync(password, client.password);
     if(!isValid){
       throw new UnauthorizedException('Invalid credentials');
     }
-    const {fullName} = user;
+    const {fullName} = client;
     const jwt = this.jwtService.sign({fullName,email})
 
-    return {user: {fullName, email, jwt}}
+    return {client: {fullName, email, jwt}}
 
     }catch(err){
       console.log(err);
       throw new UnauthorizedException(err.detail)
     }
 
+  }
+  async relocation(updateAuthDto: UpdateAuthDto): Promise<Client>{
+    const { id, country } = updateAuthDto;
+
+  // Busca el cliente por ID
+  const client = await this.clientRepository.findOneBy({ id });
+
+  if (!client) {
+    throw new NotFoundException('Cliente no encontrado');
+  }
+  // Actualiza solo el campo country
+  client.country = country;
+  // Guarda los cambios
+  await this.clientRepository.save(client);
+  return client;
   }
 }

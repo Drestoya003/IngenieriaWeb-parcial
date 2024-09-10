@@ -1,5 +1,5 @@
 import { Supplier } from "src/suppliers/entities/supplier.entity";
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from "typeorm";
 @Entity()
 export class Organ {
     @PrimaryGeneratedColumn('uuid')
@@ -10,4 +10,6 @@ export class Organ {
     unities: number;
     @ManyToOne(() => Supplier, (supplier) => supplier.organs)
     supplier: Supplier;
+    @CreateDateColumn()
+    createdAt: Date;
 }

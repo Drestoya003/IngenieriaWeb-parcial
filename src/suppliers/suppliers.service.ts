@@ -5,15 +5,34 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from './entities/supplier.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class SuppliersService {
   constructor(@InjectRepository(Supplier)
-  private readonly supplierRepository: Repository<Supplier>)
+  private readonly supplierRepository: Repository<Supplier>,
+  private readonly jwtService: JwtService
+)
   {}
   async create(createSupplierDto: CreateSupplierDto): Promise<Supplier> {
     const supplier = this.supplierRepository.create(createSupplierDto);
-    return this.supplierRepository.save(supplier);
+
+    // Guardamos el proveedor en la base de datos y esperamos que termine
+    await this.supplierRepository.save(supplier);
+
+    // Buscamos el proveedor recién creado por su nombre
+    const supplier2 = await this.supplierRepository.findOneBy({ name: supplier.name });
+
+    if (!supplier2) {
+      throw new Error('Error al crear el proveedor');
+    }
+
+    // Creamos el token JWT usando el nombre del proveedor
+    const jwt = this.jwtService.sign({ name: supplier2.name });
+
+    console.log('JWT generado:', jwt);
+
+    return supplier2;
   }
 
 

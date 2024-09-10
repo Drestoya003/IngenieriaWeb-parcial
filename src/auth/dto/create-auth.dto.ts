@@ -14,4 +14,7 @@ export class CreateAuthDto {
     @IsString()
     @MinLength(1)
     fullName: string;
+    @IsString()
+    @MinLength(3)
+    country: string;
 }

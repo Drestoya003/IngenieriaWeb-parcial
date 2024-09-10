@@ -1,7 +1,7 @@
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { JwtPayload } from "../interfaces/jwt.payload";
-import { User } from "../entities/auth.entity";
+import { Client } from "../entities/auth.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BadRequestException, Injectable } from "@nestjs/common";
@@ -9,8 +9,8 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy){
     constructor(
-        @InjectRepository(User)
-        private readonly userRepository:Repository<User>
+        @InjectRepository(Client)
+        private readonly clientRepository:Repository<Client>
     ){
         super({
             secretOrKey:process.env.S_KEY,
@@ -20,14 +20,14 @@ export class JwtStrategy extends PassportStrategy(Strategy){
     async validate(payload:JwtPayload){
         const {email}=payload;
 
-        const user=await this.userRepository.findOneBy({email});
-        if(!user){
+        const client=await this.clientRepository.findOneBy({email});
+        if(!client){
             throw new BadRequestException("Unauthorized");
         }
-        if(!user.isActive){
+        if(!client.isActive){
             throw new BadRequestException("Unauthorized");
         }
         
-        return user;
+        return client;
     }
 }

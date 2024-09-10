@@ -17,19 +17,19 @@ export class OrgansService {
     return organ;
   }
 
-//Solo lo puede ver un admin
+  
   async findAll() {
     const organs = await this.organRepository.find({});
     return organs;
   }
-//Solo lo puede ver un admin
+  
   async findOne(id: string) {
     const organ = await this.organRepository.findOneBy({id:id})
     return organ; 
   }
 
   async update(id: string, updateOrganDto: UpdateOrganDto) {
-    const organ = await this.organRepository.preload({id:id, ...updateOrganDto});
+    const organ = await this.organRepository.save({id:id, ...updateOrganDto});
     if(!organ){
       throw new NotFoundException('Cliente id no ha sido encontrado')
     }

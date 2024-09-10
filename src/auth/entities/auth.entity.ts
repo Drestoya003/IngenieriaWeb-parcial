@@ -1,8 +1,8 @@
 import { MinLength } from 'class-validator';
 import {Entity, Column,PrimaryGeneratedColumn, OneToMany} from 'typeorm'
 
-@Entity('users')
-export class User {
+@Entity('client')
+export class Client {
     @PrimaryGeneratedColumn('uuid')
     id: string;
     @Column('text',{unique:true})
@@ -15,8 +15,10 @@ export class User {
     password:string;
     @Column('boolean',{default:true})
     isActive:boolean;
+    @Column('text', {nullable:true})
+    country: string;
     @Column('text',{array:true,
-        default:['user']})
+        default:['client']})
     @MinLength(1)
     roles:string[];
     }

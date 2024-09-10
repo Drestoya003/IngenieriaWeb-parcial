@@ -7,6 +7,8 @@ export class CreateOrganDto {
     name: string
     @IsNumber()
     unities:number
+    @IsNumber()
+    pirce: number
     @IsObject()
     supplier:Supplier
 }
